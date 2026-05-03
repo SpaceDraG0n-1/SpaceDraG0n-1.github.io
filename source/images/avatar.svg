@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">SpaceDraG0n avatar</title>
+  <desc id="desc">A simple circular avatar with SD initials.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b85c38" />
+      <stop offset="100%" stop-color="#355f7a" />
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="64" fill="url(#bg)" />
+  <circle cx="128" cy="128" r="90" fill="none" stroke="#f7efe3" stroke-width="4" opacity="0.45" />
+  <path d="M76 154c0 18 14 29 35 29 17 0 30-8 30-23 0-12-8-19-25-23l-16-4c-11-3-17-7-17-15 0-10 9-16 22-16 14 0 24 6 27 18h22c-3-24-22-37-49-37-27 0-46 14-46 37 0 18 11 29 32 35l15 4c12 3 18 8 18 16 0 10-9 17-23 17-16 0-27-8-30-21H76Zm96 28h24v-39h17l26 39h28l-31-44c16-5 27-18 27-36 0-27-18-43-50-43h-41v123Zm24-102h16c16 0 26 8 26 22 0 14-10 22-26 22h-16V80Z" fill="#f7efe3" />
+</svg>

@@ -1,0 +1,286 @@
+info:
+  title: SpaceDraG0n
+  subtitle: 认真做事，坚持学习
+  author: SpaceDraG0n
+  url: https://spacedrag0n-1.github.io
+
+defaults:
+  favicon: /images/favicon.svg
+  logo:
+  avatar: /images/avatar.svg
+
+colors:
+  primary: '#B85C38'
+  secondary: '#325D79'
+  default_mode: light
+
+global:
+  fonts:
+    chinese:
+      enable: false
+      family:
+      url:
+    english:
+      enable: false
+      family:
+      url:
+    title:
+      enable: false
+      family:
+      url:
+  content_max_width: 920px
+  sidebar_width: 220px
+  hover:
+    shadow: true
+    scale: false
+  scroll_progress:
+    bar: false
+    percentage: true
+  website_counter:
+    enable: false
+    url: https://cn.vercount.one/js
+    site_pv: false
+    site_uv: false
+    post_pv: false
+  single_page: true
+  preloader:
+    enable: false
+    custom_message:
+  side_tools:
+    gear_rotation: true
+    auto_expand: false
+  open_graph:
+    enable: true
+    image: /images/hero-light.svg
+    description: SpaceDraG0n 的个人博客，记录 Kernel、Pwn、漏洞复现和长期技术笔记。
+  google_analytics:
+    enable: false
+    id:
+
+fontawesome:
+  thin: false
+  light: false
+  duotone: false
+  sharp_solid: false
+
+home_banner:
+  enable: true
+  style: fixed
+  image:
+    light: /images/hero-light.svg
+    dark: /images/hero-dark.svg
+  title: SpaceDraG0n
+  subtitle:
+    text:
+      - 记录内核、漏洞复现和长期笔记
+      - Serious work, steady learning
+    hitokoto:
+      enable: false
+      show_author: false
+      api: https://v1.hitokoto.cn
+    typing_speed: 85
+    backing_speed: 65
+    starting_delay: 450
+    backing_delay: 1400
+    loop: true
+    smart_backspace: true
+  text_color:
+    light: '#fffaf2'
+    dark: '#f6efe6'
+  text_style:
+    title_size: 3rem
+    subtitle_size: 1.3rem
+    line_height: 1.25
+  custom_font:
+    enable: false
+    family:
+    url:
+  social_links:
+    enable: false
+    style: reverse
+    links:
+      - icon: rss
+        url: /atom.xml
+      - icon: github
+        url: https://github.com/your-name
+      - icon: email
+        url: mailto:you@example.com
+    qrs: []
+
+navbar:
+  auto_hide: false
+  color:
+    left: '#d8b49a'
+    right: '#7ea0b3'
+    transparency: 42
+  width:
+    home: 1120px
+    pages: 920px
+  links:
+    Home:
+      path: /
+      icon: fa-regular fa-house
+    Archives:
+      path: /archives
+      icon: fa-regular fa-archive
+    Tags:
+      path: /tags
+      icon: fa-regular fa-hashtag
+    Links:
+      path: /friends
+      icon: fa-regular fa-link
+    About:
+      path: /about
+      icon: fa-regular fa-user
+  search:
+    enable: true
+    preload: true
+
+home:
+  sidebar:
+    enable: true
+    position: left
+    first_item: info
+    announcement: 记录技术、项目和一些反复会踩到的坑。
+    show_on_mobile: true
+    links:
+      Categories:
+        path: /categories
+        icon: fa-regular fa-folder-open
+      Links:
+        path: /friends
+        icon: fa-regular fa-link
+      RSS:
+        path: /atom.xml
+        icon: fa-regular fa-square-rss
+  article_date_format: YYYY-MM-DD
+  excerpt_length: 180
+  categories:
+    enable: true
+    limit: 3
+  tags:
+    enable: true
+    limit: 4
+
+articles:
+  style:
+    font_size: 17px
+    line_height: 1.8
+    image_border_radius: 18px
+    image_alignment: center
+    image_caption: false
+    link_icon: true
+    delete_mask: false
+    title_alignment: left
+    headings_top_spacing:
+      h1: 3rem
+      h2: 2.3rem
+      h3: 1.8rem
+      h4: 1.5rem
+      h5: 1.3rem
+      h6: 1.2rem
+  word_count:
+    enable: false
+    count: false
+    min2read: false
+  author_label:
+    enable: false
+    auto: false
+    list: []
+  code_block:
+    copy: true
+    style: mac
+    highlight_theme:
+      light: github
+      dark: github-dark
+    font:
+      enable: false
+      family:
+      url:
+  toc:
+    enable: true
+    max_depth: 3
+    number: false
+    expand: true
+    init_open: true
+  copyright:
+    enable: true
+    default: cc_by_nc_sa
+  lazyload: true
+  pangu_js: false
+  recommendation:
+    enable: false
+    title: 推荐阅读
+    limit: 3
+    mobile_limit: 2
+    placeholder: /images/hero-light.svg
+    skip_dirs: []
+
+comment:
+  enable: false
+  system: waline
+  config:
+    waline:
+      serverUrl:
+      lang: zh-CN
+      emoji: []
+      recaptchaV3Key:
+      turnstileKey:
+      reaction: false
+
+footer:
+  runtime: true
+  icon: '<i class="fa-solid fa-sparkles" style="color: #b85c38"></i>'
+  start: 2026/05/03 00:00:00
+  statistics: false
+  customize: Built with Hexo and Redefine.
+  icp:
+    enable: false
+    number:
+    url:
+
+inject:
+  enable: true
+  head:
+    - <link rel="stylesheet" href="/css/custom.css">
+    - <script defer src="/js/cloudflare-image-loader.js"></script>
+  footer:
+    -
+
+plugins:
+  feed:
+    enable: true
+  aplayer:
+    enable: false
+    type: fixed
+    audios: []
+  mermaid:
+    enable: false
+    version: '11.4.1'
+    theme:
+      light: default
+      dark: dark
+
+page_templates:
+  friends_column: 2
+  tags_style: blur
+  masonry:
+    batch_size: 12
+    initial_batch_size: 24
+
+cdn:
+  enable: false
+  provider: npmmirror
+  custom_url:
+
+developer:
+  enable: false
+
+links:
+  - links_category: 推荐博客
+    has_thumbnail: false
+    list:
+      - name: 达达
+        link: https://dada-06.github.io/
+        avatar: https://cdn.jsdelivr.net/gh/csd0617/piclist@main/img/20250723094953412.jpg
+        description: 24级 Web 方向同学

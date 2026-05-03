@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Light home banner</title>
+  <desc id="desc">A light abstract banner with layered gradients and subtle technical grid lines.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f3e5d8" />
+      <stop offset="55%" stop-color="#eedac8" />
+      <stop offset="100%" stop-color="#d7e4ea" />
+    </linearGradient>
+    <linearGradient id="blobA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c9784d" />
+      <stop offset="100%" stop-color="#efc29e" />
+    </linearGradient>
+    <linearGradient id="blobB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#426d88" />
+      <stop offset="100%" stop-color="#8fb0c1" />
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="1" />
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)" />
+  <rect width="1600" height="900" fill="url(#grid)" />
+  <circle cx="1180" cy="180" r="220" fill="url(#blobB)" opacity="0.55" />
+  <circle cx="1260" cy="720" r="280" fill="url(#blobA)" opacity="0.34" />
+  <circle cx="340" cy="710" r="230" fill="#ffffff" opacity="0.16" />
+  <path d="M0 675C192 588 303 548 473 551c184 4 277 89 443 89 141 0 214-59 304-88 123-40 242-27 380 64V900H0V675Z" fill="#fff7ee" opacity="0.58" />
+  <path d="M963 123c75 8 150 30 222 69" fill="none" stroke="#fff9f2" stroke-opacity="0.58" stroke-width="3" stroke-linecap="round" />
+  <path d="M248 277c89-42 172-60 262-57" fill="none" stroke="#ffffff" stroke-opacity="0.44" stroke-width="3" stroke-linecap="round" />
+</svg>

@@ -67,8 +67,8 @@ home_banner:
   enable: true
   style: fixed
   image:
-    light: /images/hero-top.png
-    dark: /images/hero-top.png
+    light: /images/hero-top.webp
+    dark: /images/hero-top.webp
   title: SpaceDraG0n
   subtitle:
     text:

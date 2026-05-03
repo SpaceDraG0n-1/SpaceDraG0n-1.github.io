@@ -1,6 +1,8 @@
 (function () {
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const coarsePointer = window.matchMedia("(pointer: coarse)");
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const lowBandwidth = Boolean(connection && (connection.saveData || /2g/.test(connection.effectiveType || "")));
   const state = {
     bannerFx: null,
     revealObserver: null,
@@ -8,6 +10,7 @@
     clickInstalled: false,
     globalInstalled: false,
     swupHookInstalled: false,
+    haloInstalled: false,
   };
 
   function queueBoot() {
@@ -77,7 +80,7 @@
   function mountBannerParticles() {
     const banner = document.querySelector(".home-banner");
 
-    if (!banner || prefersReducedMotion.matches) {
+    if (!banner || prefersReducedMotion.matches || lowBandwidth) {
       destroyBannerParticles();
       return;
     }
@@ -107,10 +110,10 @@
       return {
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.22,
-        vy: (Math.random() - 0.5) * 0.16 - 0.02,
-        radius: Math.random() * 1.8 + 0.8,
-        alpha: Math.random() * 0.46 + 0.24,
+        vx: (Math.random() - 0.5) * 0.26,
+        vy: (Math.random() - 0.5) * 0.18 - 0.02,
+        radius: Math.random() * 2.4 + 0.9,
+        alpha: Math.random() * 0.52 + 0.32,
         hue: Math.random() > 0.7 ? 24 : 198,
       };
     }
@@ -127,7 +130,7 @@
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const density = coarsePointer.matches ? 26 : 42;
+      const density = coarsePointer.matches ? 24 : 56;
       const desiredCount = Math.max(18, Math.min(density, Math.round((width * height) / 32000)));
       particles = Array.from({ length: desiredCount }, createParticle);
     }
@@ -170,10 +173,10 @@
           const dy = first.y - second.y;
           const distanceSquared = dx * dx + dy * dy;
 
-          if (distanceSquared > 110 * 110) continue;
+          if (distanceSquared > 132 * 132) continue;
 
-          const opacity = (1 - distanceSquared / (110 * 110)) * 0.085;
-          context.strokeStyle = `rgba(220, 236, 244, ${opacity})`;
+          const opacity = (1 - distanceSquared / (132 * 132)) * 0.12;
+          context.strokeStyle = `rgba(229, 238, 245, ${opacity})`;
           context.lineWidth = 1;
           context.beginPath();
           context.moveTo(first.x, first.y);
@@ -263,6 +266,67 @@
     window.setTimeout(() => burst.remove(), 760);
   }
 
+  function installCursorHalo() {
+    if (state.haloInstalled || coarsePointer.matches || prefersReducedMotion.matches) return;
+
+    state.haloInstalled = true;
+    const halo = document.createElement("div");
+    halo.className = "fx-cursor-halo";
+    document.body.appendChild(halo);
+
+    let rafId = 0;
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
+    let currentX = targetX;
+    let currentY = targetY;
+    let visible = false;
+
+    function render() {
+      currentX += (targetX - currentX) * 0.18;
+      currentY += (targetY - currentY) * 0.18;
+      halo.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) scale(${visible ? 1 : 0.72})`;
+      rafId = window.requestAnimationFrame(render);
+    }
+
+    document.addEventListener(
+      "pointermove",
+      (event) => {
+        visible = true;
+        targetX = event.clientX;
+        targetY = event.clientY;
+        halo.classList.add("is-visible");
+      },
+      { passive: true },
+    );
+
+    document.addEventListener(
+      "pointerleave",
+      () => {
+        visible = false;
+        halo.classList.remove("is-visible");
+      },
+      { passive: true },
+    );
+
+    window.addEventListener(
+      "blur",
+      () => {
+        visible = false;
+        halo.classList.remove("is-visible");
+      },
+      { passive: true },
+    );
+
+    render();
+    window.addEventListener(
+      "beforeunload",
+      () => {
+        if (rafId) cancelAnimationFrame(rafId);
+      },
+      { passive: true },
+    );
+  }
+
   function attachSwupHooks(swup) {
     if (state.swupHookInstalled || !swup || !swup.hooks || typeof swup.hooks.on !== "function") return;
 
@@ -276,6 +340,8 @@
       state.clickInstalled = true;
       document.addEventListener("pointerdown", createClickBurst, { passive: true });
     }
+
+    installCursorHalo();
 
     if (state.globalInstalled) return;
     state.globalInstalled = true;

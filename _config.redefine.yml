@@ -242,8 +242,7 @@ footer:
 inject:
   enable: true
   head:
-    - <link rel="stylesheet" href="/css/custom.css?v=20260503c">
-    - <script defer src="/js/site-effects.js?v=20260503c"></script>
+    - <link rel="stylesheet" href="/css/custom.css?v=20260503d">
   footer:
     -
 

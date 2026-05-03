@@ -243,7 +243,6 @@ inject:
   enable: true
   head:
     - <link rel="stylesheet" href="/css/custom.css">
-    - <script defer src="/js/cloudflare-image-loader.js"></script>
   footer:
     -
 

@@ -5,9 +5,6 @@
   "scripts": {
     "build": "hexo generate",
     "clean": "hexo clean",
-    "cf:deploy": "wrangler pages deploy public",
-    "cf:project": "wrangler pages project create",
-    "cf:preview": "wrangler pages deploy public --branch preview",
     "deploy": "hexo deploy",
     "images:localize": "node tools/localize-legacy-images.mjs",
     "new:post": "hexo new post",
@@ -31,8 +28,5 @@
     "hexo-server": "^3.0.0",
     "hexo-theme-landscape": "^1.0.0",
     "hexo-theme-redefine": "^2.9.0"
-  },
-  "devDependencies": {
-    "wrangler": "^4.17.0"
   }
 }

@@ -7,7 +7,7 @@ info:
 defaults:
   favicon: /images/favicon.svg
   logo:
-  avatar: /images/avatar.svg
+  avatar: /images/avatar.jpg
 
 colors:
   primary: '#B85C38'
@@ -51,7 +51,7 @@ global:
     auto_expand: false
   open_graph:
     enable: true
-    image: /images/hero-light.svg
+    image: /images/hero-top.png
     description: SpaceDraG0n 的个人博客，记录 Kernel、Pwn、漏洞复现和长期技术笔记。
   google_analytics:
     enable: false
@@ -67,8 +67,8 @@ home_banner:
   enable: true
   style: fixed
   image:
-    light: /images/hero-light.svg
-    dark: /images/hero-dark.svg
+    light: /images/hero-top.png
+    dark: /images/hero-top.png
   title: SpaceDraG0n
   subtitle:
     text:

@@ -43,6 +43,10 @@ pre,
   pointer-events: none;
 }
 
+.home-banner-background img {
+  object-position: center 62%;
+}
+
 .home-banner .content {
   position: relative;
   z-index: 1;

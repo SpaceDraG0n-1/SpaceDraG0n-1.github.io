@@ -29,8 +29,6 @@
   }
 
   function installReveal() {
-    if (prefersReducedMotion.matches) return;
-
     if (!state.revealObserver) {
       state.revealObserver = new IntersectionObserver(
         (entries) => {
@@ -80,7 +78,7 @@
   function mountBannerParticles() {
     const banner = document.querySelector(".home-banner");
 
-    if (!banner || prefersReducedMotion.matches || lowBandwidth) {
+    if (!banner || lowBandwidth) {
       destroyBannerParticles();
       return;
     }
@@ -267,7 +265,7 @@
   }
 
   function installCursorHalo() {
-    if (state.haloInstalled || coarsePointer.matches || prefersReducedMotion.matches) return;
+    if (state.haloInstalled || coarsePointer.matches) return;
 
     state.haloInstalled = true;
     const halo = document.createElement("div");
@@ -336,7 +334,7 @@
   }
 
   function installGlobalBehaviors() {
-    if (!state.clickInstalled && !prefersReducedMotion.matches) {
+    if (!state.clickInstalled) {
       state.clickInstalled = true;
       document.addEventListener("pointerdown", createClickBurst, { passive: true });
     }

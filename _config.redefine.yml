@@ -5,7 +5,7 @@ info:
   url: https://spacedrag0n-1.github.io
 
 defaults:
-  favicon: /images/favicon.svg
+  favicon: /images/favicon-avatar.png
   logo:
   avatar: /images/avatar.jpg
 
@@ -51,7 +51,7 @@ global:
     auto_expand: false
   open_graph:
     enable: true
-    image: /images/hero-top.png
+    image: /images/hero-top.webp
     description: SpaceDraG0n 的个人博客，记录 Kernel、Pwn、漏洞复现和长期技术笔记。
   google_analytics:
     enable: false

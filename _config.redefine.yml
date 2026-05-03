@@ -5,7 +5,7 @@ info:
   url: https://spacedrag0n-1.github.io
 
 defaults:
-  favicon: /images/favicon-avatar.png
+  favicon: /images/favicon-avatar-v3.png
   logo:
   avatar: /images/avatar.jpg
 
@@ -51,7 +51,7 @@ global:
     auto_expand: false
   open_graph:
     enable: true
-    image: /images/hero-top.webp
+    image: /images/hero-top-sharp.webp
     description: SpaceDraG0n 的个人博客，记录 Kernel、Pwn、漏洞复现和长期技术笔记。
   google_analytics:
     enable: false
@@ -67,8 +67,8 @@ home_banner:
   enable: true
   style: fixed
   image:
-    light: /images/hero-top.webp
-    dark: /images/hero-top.webp
+    light: /images/hero-top-sharp.webp
+    dark: /images/hero-top-sharp.webp
   title: SpaceDraG0n
   subtitle:
     text:
@@ -242,8 +242,8 @@ footer:
 inject:
   enable: true
   head:
-    - <link rel="stylesheet" href="/css/custom.css">
-    - <script defer src="/js/site-effects.js"></script>
+    - <link rel="stylesheet" href="/css/custom.css?v=20260503c">
+    - <script defer src="/js/site-effects.js?v=20260503c"></script>
   footer:
     -
 

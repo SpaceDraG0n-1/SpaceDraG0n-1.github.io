@@ -34,12 +34,13 @@ pre,
   font-family: var(--monospace-font-family);
 }
 
-.home-banner {
+:is(.home-banner, .home-banner-container) {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
-.home-banner::before {
+:is(.home-banner, .home-banner-container)::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -56,16 +57,20 @@ pre,
     radial-gradient(circle at 74% 72%, rgba(255, 220, 180, 0.7) 0 1.6px, transparent 2.9px),
     radial-gradient(circle at 85% 36%, rgba(238, 247, 255, 0.82) 0 1.25px, transparent 2.45px),
     radial-gradient(circle at 92% 18%, rgba(255, 230, 198, 0.64) 0 1.2px, transparent 2.5px);
-  animation: fx-banner-stars 11s ease-in-out infinite alternate;
+  animation: fx-banner-stars 9.5s ease-in-out infinite alternate;
 }
 
-.home-banner::after {
+:is(.home-banner, .home-banner-container)::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(10, 15, 22, 0.03), rgba(10, 15, 22, 0.22));
+  background:
+    radial-gradient(circle at 18% 22%, rgba(170, 223, 255, 0.16), transparent 24%),
+    radial-gradient(circle at 78% 18%, rgba(255, 215, 185, 0.18), transparent 24%),
+    linear-gradient(180deg, rgba(10, 15, 22, 0.02), rgba(10, 15, 22, 0.2));
   z-index: 1;
   pointer-events: none;
+  animation: fx-banner-aura 14s ease-in-out infinite alternate;
 }
 
 .home-banner-background {
@@ -73,28 +78,38 @@ pre,
   background:
     radial-gradient(circle at 50% 78%, rgba(255, 186, 129, 0.22), transparent 26%),
     linear-gradient(180deg, #152a39 0%, #2e4250 38%, #e59a78 100%);
-  filter: saturate(1.04) contrast(1.03);
-  transform: scale(1.02) !important;
+  filter: saturate(1.08) contrast(1.08);
+  transform: scale(1.008) translateZ(0) !important;
+  backface-visibility: hidden;
 }
 
 .home-banner-background img {
-  object-position: center 62%;
+  object-position: center 60%;
   image-rendering: auto;
-  filter: saturate(1.05) contrast(1.04) brightness(1.02);
+  filter: saturate(1.09) contrast(1.09) brightness(1.03);
 }
 
-.home-banner .content {
+:is(.home-banner, .home-banner-container) .content {
   position: relative;
   z-index: 4;
 }
 
-.home-banner .content .title {
-  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.26);
+:is(.home-banner, .home-banner-container) .content .title,
+:is(.home-banner, .home-banner-container) .content .description {
+  text-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.26),
+    0 0 28px rgba(255, 238, 219, 0.08);
 }
 
-.home-banner .content .description,
-.home-banner .content .subtitle {
+:is(.home-banner, .home-banner-container) .content .description,
+:is(.home-banner, .home-banner-container) .content .subtitle,
+:is(.home-banner, .home-banner-container) #subtitle {
   text-shadow: 0 6px 22px rgba(0, 0, 0, 0.2);
+}
+
+:is(.home-banner, .home-banner-container) #subtitle {
+  display: inline-block;
+  letter-spacing: 0.04em;
 }
 
 .fx-particle-canvas,
@@ -221,10 +236,10 @@ pre,
 
 .fx-click-burst {
   position: fixed;
-  width: 22px;
-  height: 22px;
-  margin-left: -11px;
-  margin-top: -11px;
+  width: 34px;
+  height: 34px;
+  margin-left: -17px;
+  margin-top: -17px;
   pointer-events: none;
   z-index: 9999;
 }
@@ -239,32 +254,32 @@ pre,
 }
 
 .fx-click-burst::before {
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   background: rgba(255, 247, 239, 0.98);
-  box-shadow: 0 0 22px rgba(255, 228, 196, 0.78);
-  animation: fx-click-core 0.66s ease-out forwards;
+  box-shadow: 0 0 30px rgba(255, 228, 196, 0.78);
+  animation: fx-click-core 0.72s ease-out forwards;
 }
 
 .fx-click-burst::after {
-  width: 16px;
-  height: 16px;
-  border: 1.5px solid rgba(255, 244, 233, 0.88);
-  animation: fx-click-ring 0.66s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  width: 22px;
+  height: 22px;
+  border: 1.8px solid rgba(255, 244, 233, 0.88);
+  animation: fx-click-ring 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .fx-click-burst i {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 18px;
-  height: 2.5px;
-  margin-left: -9px;
+  width: 24px;
+  height: 3px;
+  margin-left: -12px;
   margin-top: -1px;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(255, 228, 196, 0), hsla(var(--fx-hue), 92%, 78%, 0.96), rgba(255, 228, 196, 0));
   transform: rotate(var(--fx-rotate)) translateX(0);
-  animation: fx-click-spark 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: fx-click-spark 0.78s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes fx-click-core {
@@ -315,8 +330,20 @@ pre,
   }
 }
 
+@keyframes fx-banner-aura {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translate3d(0, -10px, 0) scale(1.04);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 768px) {
-  .home-banner .content .title {
+  :is(.home-banner, .home-banner-container) .content .title {
     font-size: 2.4rem !important;
   }
 

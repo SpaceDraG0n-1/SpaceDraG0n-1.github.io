@@ -76,7 +76,7 @@
   }
 
   function mountBannerParticles() {
-    const banner = document.querySelector(".home-banner");
+    const banner = document.querySelector(".home-banner, .home-banner-container");
 
     if (!banner || lowBandwidth) {
       destroyBannerParticles();
@@ -108,10 +108,10 @@
       return {
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.26,
-        vy: (Math.random() - 0.5) * 0.18 - 0.02,
-        radius: Math.random() * 2.4 + 0.9,
-        alpha: Math.random() * 0.52 + 0.32,
+        vx: (Math.random() - 0.5) * 0.34,
+        vy: (Math.random() - 0.5) * 0.22 - 0.02,
+        radius: Math.random() * 2.8 + 1,
+        alpha: Math.random() * 0.56 + 0.38,
         hue: Math.random() > 0.7 ? 24 : 198,
       };
     }
@@ -128,8 +128,8 @@
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const density = coarsePointer.matches ? 24 : 56;
-      const desiredCount = Math.max(18, Math.min(density, Math.round((width * height) / 32000)));
+      const density = coarsePointer.matches ? 24 : 72;
+      const desiredCount = Math.max(22, Math.min(density, Math.round((width * height) / 26000)));
       particles = Array.from({ length: desiredCount }, createParticle);
     }
 
@@ -171,9 +171,9 @@
           const dy = first.y - second.y;
           const distanceSquared = dx * dx + dy * dy;
 
-          if (distanceSquared > 132 * 132) continue;
+          if (distanceSquared > 160 * 160) continue;
 
-          const opacity = (1 - distanceSquared / (132 * 132)) * 0.12;
+          const opacity = (1 - distanceSquared / (160 * 160)) * 0.16;
           context.strokeStyle = `rgba(229, 238, 245, ${opacity})`;
           context.lineWidth = 1;
           context.beginPath();
@@ -187,12 +187,12 @@
     function animate() {
       context.clearRect(0, 0, width, height);
 
-      const driftX = (pointer.x - 0.5) * 10;
-      const driftY = (pointer.y - 0.5) * 8;
+      const driftX = (pointer.x - 0.5) * 14;
+      const driftY = (pointer.y - 0.5) * 10;
 
       particles.forEach((particle, index) => {
-        particle.x += particle.vx + driftX * 0.002 * (index % 3 === 0 ? -1 : 1);
-        particle.y += particle.vy + driftY * 0.0015;
+        particle.x += particle.vx + driftX * 0.0024 * (index % 3 === 0 ? -1 : 1);
+        particle.y += particle.vy + driftY * 0.0018;
 
         if (particle.x < -24) particle.x = width + 24;
         if (particle.x > width + 24) particle.x = -24;
@@ -251,17 +251,17 @@
     burst.style.left = `${event.clientX}px`;
     burst.style.top = `${event.clientY}px`;
 
-    const sparkCount = event.pointerType === "touch" ? 5 : 7;
+    const sparkCount = event.pointerType === "touch" ? 7 : 9;
     for (let i = 0; i < sparkCount; i += 1) {
       const spark = document.createElement("i");
       spark.style.setProperty("--fx-rotate", `${(360 / sparkCount) * i + Math.random() * 18}deg`);
-      spark.style.setProperty("--fx-distance", `${12 + Math.random() * 16}px`);
+      spark.style.setProperty("--fx-distance", `${18 + Math.random() * 18}px`);
       spark.style.setProperty("--fx-hue", i % 2 === 0 ? "24" : "196");
       burst.appendChild(spark);
     }
 
     document.body.appendChild(burst);
-    window.setTimeout(() => burst.remove(), 760);
+    window.setTimeout(() => burst.remove(), 820);
   }
 
   function installCursorHalo() {
